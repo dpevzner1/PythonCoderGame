@@ -1734,7 +1734,7 @@ internal sealed class GameForm : Form
         g.DrawString(CurrentLesson.Title, _uiBold, text, rect.X + 18, rect.Y + 14);
         using var statusBrush = new SolidBrush(CurrentLesson.IsBoss ? Palette.Orange : Palette.Dim);
         g.DrawString(CurrentLesson.IsBoss ? "A VIRUS HAS CORRUPTED THE CODE" : _status, _uiBold, statusBrush, rect.X + 18, rect.Y + 42);
-        var stats = $"Score {_score.Score}   WPM {_score.Wpm}   Accuracy {_score.Accuracy:0.##}%   Combo {_score.Combo} x{_score.Multiplier:0.#}";
+        var stats = $"Score {_score.Score}   Combo {_score.Combo} x{_score.Multiplier:0.#}";
         var size = g.MeasureString(stats, _uiBold);
         g.DrawString(stats, _uiBold, text, rect.Right - size.Width - 18, rect.Y + 30);
     }

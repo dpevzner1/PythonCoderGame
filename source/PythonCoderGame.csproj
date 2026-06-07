@@ -23,8 +23,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="INSTALLER\**\*.cs" />
+    <Compile Remove="GITHUB EXPORT\**\*.cs" />
+    <Compile Remove="GITHUB EXPORT PUSH\**\*.cs" />
     <EmbeddedResource Remove="INSTALLER\**\*" />
+    <EmbeddedResource Remove="GITHUB EXPORT\**\*" />
+    <EmbeddedResource Remove="GITHUB EXPORT PUSH\**\*" />
     <None Remove="INSTALLER\**\*" />
+    <None Remove="GITHUB EXPORT\**\*" />
+    <None Remove="GITHUB EXPORT PUSH\**\*" />
     <Content Remove="INSTALLER\**\*" />
+    <Content Remove="GITHUB EXPORT\**\*" />
+    <Content Remove="GITHUB EXPORT PUSH\**\*" />
   </ItemGroup>
 </Project>
