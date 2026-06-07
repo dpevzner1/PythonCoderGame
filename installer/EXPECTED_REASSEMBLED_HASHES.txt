@@ -1,0 +1,9 @@
+﻿
+File                              SHA256                                                                Size
+----                              ------                                                                ----
+PythonCoderGame.Setup.exe         DAF59736A16A146846B46C2DEA2434AB1DC7EC8F64576DFBFA592A40101129A1 220998130
+PythonCoderGamePayload.zip        7E2D4393417A9317A4962CF99839ACBA14373CD70AC97C675A8A46F0991C9632 104933054
+portable-dist\PythonCoderGame.exe BAED26A23DE0FB85FDF29CE8D77A3A07463FEF0C3FF02805AC9A7714C73C6FAC 147822692
+
+
+
