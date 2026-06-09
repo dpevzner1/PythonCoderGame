@@ -1772,7 +1772,7 @@ internal sealed class GameForm : Form
 
     private void DrawHud(Graphics g)
     {
-        var rect = new Rectangle(300, 92, ClientSize.Width - 616, 86);
+        var rect = new Rectangle(MainColumnX(), 92, MainColumnWidth(), 86);
         Panel(g, rect, Color.FromArgb(220, 8, 13, 21), Palette.Cyan);
         using var text = new SolidBrush(Palette.Text);
         using var dim = new SolidBrush(Palette.Dim);
@@ -1793,7 +1793,7 @@ internal sealed class GameForm : Form
 
         var seconds = Math.Max(0, (int)Math.Ceiling(_bossTimeRemaining));
         var critical = seconds <= 10;
-        var lane = new Rectangle(300, 192, ClientSize.Width - 616, ClientSize.Height - 276);
+        var lane = new Rectangle(MainColumnX(), 192, MainColumnWidth(), ClientSize.Height - 276);
         var rect = new Rectangle(lane.Right - 244, lane.Y + 12, 232, 58);
         using var back = new LinearGradientBrush(rect, Color.FromArgb(238, 22, 4, 22), Color.FromArgb(238, 55, 12, 7), 0f);
         using var border = new Pen(critical ? Palette.HotRed : Palette.Orange, critical ? 2.4f : 1.8f);
@@ -1825,20 +1825,35 @@ internal sealed class GameForm : Form
 
     private void DrawCodeViewer(Graphics g)
     {
-        var rect = new Rectangle(22, 104, 252, ClientSize.Height - 186);
+        var rect = new Rectangle(22, 104, CodeViewerWidth(), ClientSize.Height - 186);
         Panel(g, rect, Color.FromArgb(226, 7, 10, 16), Palette.Green);
         using var head = new SolidBrush(Palette.Green);
-        using var text = new SolidBrush(Palette.Text);
         using var dim = new SolidBrush(Palette.Dim);
         g.DrawString("PYTHON COMPILER STACK", _uiBold, head, rect.X + 14, rect.Y + 14);
         g.DrawString("assembled_code.py", _monoSmall, dim, rect.X + 14, rect.Y + 36);
-        var y = rect.Y + 66;
-        for (var i = 0; i < _completedLines.Count; i++)
+
+        var codeArea = new Rectangle(rect.X + 10, rect.Y + 62, rect.Width - 20, rect.Height - 74);
+        var state = g.Save();
+        g.SetClip(codeArea);
+        var y = codeArea.Y + 4;
+        var codeX = rect.X + 46;
+        var availableCodeWidth = Math.Max(64, rect.Right - codeX - 16);
+        for (var i = 0; i < _completedLines.Count && y < codeArea.Bottom; i++)
         {
-            g.DrawString((i + 1).ToString().PadLeft(2), _monoSmall, dim, rect.X + 12, y + 2);
-            DrawPythonHighlighted(g, _completedLines[i], _monoSmall, rect.X + 42, y);
-            y += 24;
+            var fitted = FittedMonoFont(g, _monoSmall, _completedLines[i], availableCodeWidth, 7.2f);
+            try
+            {
+                var lineFont = fitted ?? _monoSmall;
+                g.DrawString((i + 1).ToString().PadLeft(2), _monoSmall, dim, rect.X + 12, y + 2);
+                DrawPythonHighlighted(g, _completedLines[i], lineFont, codeX, y);
+                y += Math.Max(18, lineFont.Height + 4);
+            }
+            finally
+            {
+                fitted?.Dispose();
+            }
         }
+        g.Restore(state);
     }
 
     private void DrawLessonPanel(Graphics g)
@@ -1862,7 +1877,7 @@ internal sealed class GameForm : Form
     private void DrawRisingSnippet(Graphics g)
     {
         if (IsLessonComplete) return;
-        var lane = new Rectangle(300, 192, ClientSize.Width - 616, ClientSize.Height - 276);
+        var lane = new Rectangle(MainColumnX(), 192, MainColumnWidth(), ClientSize.Height - 276);
         using var pen = new Pen(Palette.Grid);
         g.DrawRectangle(pen, lane);
 
@@ -1903,7 +1918,7 @@ internal sealed class GameForm : Form
 
     private void DrawInputRail(Graphics g)
     {
-        var rect = new Rectangle(300, ClientSize.Height - 70, ClientSize.Width - 616, 56);
+        var rect = new Rectangle(MainColumnX(), ClientSize.Height - 70, MainColumnWidth(), 56);
         using var back = new SolidBrush(Color.FromArgb(210, 6, 9, 13));
         using var border = new Pen(Palette.Magenta, 1.4f);
         g.FillRoundedRectangle(back, rect, 8);
@@ -1913,6 +1928,15 @@ internal sealed class GameForm : Form
         g.DrawString("USER INPUT RAIL", _monoSmall, label, rect.X + 14, rect.Y + 8);
         g.DrawString("typing happens in the bottom field only", _monoSmall, dim, rect.Right - 278, rect.Y + 8);
     }
+
+    private int CodeViewerWidth()
+        => Math.Clamp((int)(ClientSize.Width * 0.24), 252, 420);
+
+    private int MainColumnX()
+        => 22 + CodeViewerWidth() + 24;
+
+    private int MainColumnWidth()
+        => Math.Max(320, ClientSize.Width - MainColumnX() - 308);
 
     private void DrawBossCorruptedCode(Graphics g, string code, Font font, float x, float y)
     {
@@ -2593,6 +2617,23 @@ internal sealed class GameForm : Form
                 cursor += charWidth;
             }
         }
+    }
+
+    private static Font? FittedMonoFont(Graphics g, Font baseFont, string text, float maxWidth, float minimumSize)
+    {
+        var required = GetMonoCharWidth(g, baseFont) * Math.Max(1, text.Length);
+        if (required <= maxWidth)
+        {
+            return null;
+        }
+
+        var scaledSize = Math.Max(minimumSize, baseFont.Size * (maxWidth / required));
+        if (Math.Abs(scaledSize - baseFont.Size) < 0.05f)
+        {
+            return null;
+        }
+
+        return new Font(baseFont.FontFamily, scaledSize, baseFont.Style, GraphicsUnit.Point);
     }
 
     private static void DrawPythonCompared(Graphics g, string target, string typed, Font font, float x, float y)
