@@ -64,6 +64,8 @@ internal sealed class GameForm : Form
     private int _bossAttempts;
     private double _bossTimeRemaining;
     private DateTime _bossHintUntilUtc;
+    private DateTime _bossHintStartedUtc;
+    private string _bossHintMode = "";
     private int _bossHintStart = -1;
     private int _bossHintLength;
     private string _lastLiveInputText = "";
@@ -483,6 +485,8 @@ internal sealed class GameForm : Form
         _bossAttempts = 0;
         _bossTimeRemaining = CurrentLesson.IsBoss ? 60 : 0;
         _bossHintUntilUtc = DateTime.MinValue;
+        _bossHintStartedUtc = DateTime.MinValue;
+        _bossHintMode = "";
         _bossHintStart = -1;
         _bossHintLength = 0;
         _floatingTexts.Clear();
@@ -631,6 +635,10 @@ internal sealed class GameForm : Form
         _lineStartedUtc = DateTime.UtcNow;
         _lineAttempts = 0;
         _lineUsedHelp = false;
+        if (CurrentLesson.IsBoss && !IsLessonComplete)
+        {
+            TriggerBossOpeningHint();
+        }
         _input.Focus();
     }
 
@@ -739,10 +747,27 @@ internal sealed class GameForm : Form
     private void TriggerBossCompileHint(string typed)
     {
         var diff = FirstDifference(typed, CurrentLine.Text);
-        _bossHintStart = Math.Max(0, diff - 2);
-        _bossHintLength = 4;
-        _bossHintUntilUtc = DateTime.UtcNow.AddSeconds(3);
+        StartBossHint(Math.Max(0, diff - 2), "compile", TimeSpan.FromSeconds(3.2));
         _status = "COMPILE ERROR: virus scan highlights the likely damaged token.";
+    }
+
+    private void TriggerBossOpeningHint()
+    {
+        var diff = FirstDifference(CurrentCorruptedLine, CurrentLine.Text);
+        var title = CurrentLine.Term;
+        var diagnostic = CurrentLine.Explanation;
+        StartBossHint(Math.Max(0, diff - 2), "free", TimeSpan.FromSeconds(4.2));
+        _feedback = $"FREE HINT: Check the {title} syntax. {diagnostic}";
+        _status = "FREE HINT: the scanner is blinking over the corrupted section.";
+    }
+
+    private void StartBossHint(int start, string mode, TimeSpan duration)
+    {
+        _bossHintStart = Math.Max(0, start);
+        _bossHintLength = 4;
+        _bossHintMode = mode;
+        _bossHintStartedUtc = DateTime.UtcNow;
+        _bossHintUntilUtc = _bossHintStartedUtc.Add(duration);
     }
 
     private static string BuildCorrectionHint(string typed, string target)
@@ -1654,31 +1679,51 @@ internal sealed class GameForm : Form
 
     private static string SectionTitle(int sectionNumber) => sectionNumber switch
     {
-        1 => "First Output And Simple Values",
-        2 => "Readable Names And Text Building",
-        3 => "Expressions And Ordered Data",
-        4 => "Collections And Decision Gates",
-        5 => "Logic And Loop Conveyors",
-        6 => "Functions And Mini Programs",
-        7 => "User Data And Imports",
-        8 => "Debugging And Safe Code",
-        9 => "Integrated Practice",
-        10 => "Final Python Readiness",
+        1 => "Output And Syntax",
+        2 => "Values And Variables",
+        3 => "Names And Text",
+        4 => "Arithmetic",
+        5 => "Input And Casting",
+        6 => "Formatted Output",
+        7 => "Math Tracing",
+        8 => "List Basics",
+        9 => "Dictionary Records",
+        10 => "Basket Math",
+        11 => "Conditionals",
+        12 => "Boolean Logic",
+        13 => "Loop Basics",
+        14 => "Looped Data",
+        15 => "Function Basics",
+        16 => "Function Patterns",
+        17 => "Ledger Calculations",
+        18 => "Ledger Reports",
+        19 => "Modules And Errors",
+        20 => "Budget Capstone",
         _ => "Python Skill Block"
     };
 
     private static string SectionDescription(int sectionNumber) => sectionNumber switch
     {
-        1 => "Students learn code order, print output, comments, strings, and syntax symbols.",
+        1 => "Students learn code order, console output, comments, strings, and valid syntax symbols.",
         2 => "Students store text, integers, floats, booleans, and empty placeholder values.",
-        3 => "Students practice naming, text composition, f-strings, math, and reassignment.",
-        4 => "Students inspect types, build lists, index values, append items, and combine a mini inventory.",
-        5 => "Students use dictionaries, lookups, comparisons, if branches, and if/else decisions.",
-        6 => "Students compare equality, use elif, combine and/or/not, and reason about access logic.",
-        7 => "Students trace short range loops, list loops, accumulators, and safe while loops.",
-        8 => "Students define, call, parameterize, and return values from focused functions.",
-        9 => "Students model input, conversion, imports, file path values, and settings data.",
-        10 => "Students read errors, use try/except, write checks, design small functions, and complete a mini program.",
+        3 => "Students practice readable names, string joining, conversion, and f-string insertion.",
+        4 => "Students build confidence with addition, subtraction, multiplication, division, and reassignment.",
+        5 => "Students model user input, select useful casts, and inspect value types.",
+        6 => "Students format decimals, commas, and aligned columns for readable output.",
+        7 => "Students trace precedence, square roots, absolute values, increments, and assignment flow.",
+        8 => "Students create, index, append, count, and use small inventory lists.",
+        9 => "Students create dictionaries, update records, and read nested list/dictionary data.",
+        10 => "Students calculate basket line totals, sums, checks, and final messages.",
+        11 => "Students compare values, use if blocks, indentation, if/else, and equality.",
+        12 => "Students use elif chains and combine conditions with and, or, and not.",
+        13 => "Students trace short range loops, loop variables, list loops, accumulators, and while loops.",
+        14 => "Students traverse lists, count matches, total values, and keep nested loops short.",
+        15 => "Students define, call, parameterize, and return values from functions.",
+        16 => "Students combine functions with totals, formatting, validation, defaults, and calculators.",
+        17 => "Students model balance changes, income, withdrawals, savings, and interest.",
+        18 => "Students format ledger tables, money rows, and reusable report rows.",
+        19 => "Students import modules, use predictable randomness, name file paths, and handle errors.",
+        20 => "Students combine inputs, calculations, savings, interest, and formatted output into one program.",
         _ => "Students review and combine previously introduced Python concepts."
     };
 
@@ -1842,7 +1887,7 @@ internal sealed class GameForm : Form
             DrawBossCorruptedCode(g, CurrentCorruptedLine, _monoBold, rect.X + 18, rect.Y + 40);
             DrawBossHealthBar(g, new Rectangle((int)rect.X + 18, (int)rect.Y + 84, (int)rect.Width - 36, 26));
             using var compileBrush = new SolidBrush(DateTime.UtcNow < _bossHintUntilUtc ? Palette.HotRed : Palette.Orange);
-            g.DrawString(DateTime.UtcNow < _bossHintUntilUtc ? "COMPILE ERROR HINT ACTIVE" : "TYPE THE REPAIRED CODE IN THE INPUT RAIL", _monoSmall, compileBrush, rect.X + 18, rect.Y + 122);
+            g.DrawString(BossHintStatusText(), _monoSmall, compileBrush, rect.X + 18, rect.Y + 122);
         }
         else
         {
@@ -1873,7 +1918,7 @@ internal sealed class GameForm : Form
     {
         var cursor = x;
         var charWidth = GetMonoCharWidth(g, font);
-        var hintActive = DateTime.UtcNow < _bossHintUntilUtc && _bossHintStart >= 0;
+        var hintActive = BossHintVisible();
         for (var i = 0; i < code.Length; i++)
         {
             if (hintActive && i >= _bossHintStart && i < _bossHintStart + _bossHintLength)
@@ -1885,6 +1930,30 @@ internal sealed class GameForm : Form
             DrawCodeText(g, code[i].ToString(), font, Palette.Orange, cursor, y);
             cursor += charWidth;
         }
+    }
+
+    private string BossHintStatusText()
+    {
+        if (DateTime.UtcNow >= _bossHintUntilUtc)
+        {
+            return "TYPE THE REPAIRED CODE IN THE INPUT RAIL";
+        }
+
+        return _bossHintMode == "free"
+            ? "FREE HINT: BLINKING OVER CORRUPTED TOKEN"
+            : "COMPILE ERROR: BLINKING OVER LIKELY DAMAGE";
+    }
+
+    private bool BossHintVisible()
+    {
+        if (_bossHintStart < 0 || DateTime.UtcNow >= _bossHintUntilUtc)
+        {
+            return false;
+        }
+
+        var elapsed = (DateTime.UtcNow - _bossHintStartedUtc).TotalSeconds;
+        var blinkIndex = (int)(elapsed / 0.35);
+        return blinkIndex < 8 && blinkIndex % 2 == 0;
     }
 
     private void DrawBossCorruptionFrame(Graphics g, RectangleF rect)

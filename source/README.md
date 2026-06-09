@@ -2,7 +2,7 @@
 
 Python Coder Game is a Windows desktop arcade learning game for beginner Python. It teaches syntax and programming flow through slow, deliberate typing missions, visual code stacking, compile-style replays, boss debugging battles, and instructor-facing telemetry.
 
-The project was inspired by the existing WPM-style trainer at `C:\Users\demit\Documents\Antigrav\WPMtrainer`, but that folder is a read-only reference. This app is implemented separately as a C# WinForms executable. Python curriculum structure and teaching logic were guided by the DevOpsAgent reference at `C:\Users\demit\Documents\Antigrav\DevOpsAgent`, also used as read-only reference.
+The app is implemented as a standalone C# WinForms executable with a built-in Python learning curriculum, local progress storage, and a guided Windows installer.
 
 ## Core Game Loop
 
@@ -146,12 +146,13 @@ Boss battle flow:
 1. Header shows `A VIRUS HAS CORRUPTED THE CODE`.
 2. A corrupted orange snippet is shown.
 3. The correct answer is not shown.
-4. The learner types the repaired code in the input rail.
-5. The virus health bar sits below the corrupted code.
-6. Each corrected snippet removes one section of the virus health bar.
-7. A 60-second virus timer appears in the upper right of the active code screen.
-8. If the timer reaches zero, the virus wins and the boss restarts.
-9. When the learner submits an incorrect repair, the game simulates a compile attempt and highlights four characters around the likely error area for three seconds.
+4. A free first hint appears for the corrupted snippet and the scanner blinks four times over a four-character suspect region.
+5. The learner types the repaired code in the input rail.
+6. The virus health bar sits below the corrupted code.
+7. Each corrected snippet removes one section of the virus health bar.
+8. A 60-second virus timer appears in the upper right of the active code screen.
+9. If the timer reaches zero, the virus wins and the boss restarts.
+10. When the learner submits an incorrect repair, the game simulates a compile attempt and highlights four characters around the likely error area for three seconds.
 
 Bosses are intentionally beginner-friendly. They focus on one repair at a time, such as:
 
@@ -181,20 +182,30 @@ Wrong submitted lines also record an error event for telemetry and give feedback
 
 ## Curriculum
 
-The curriculum now uses 50 learning missions plus 10 boss recaps. Each section contains five learning missions followed by one boss battle that corrupts code from those five lessons.
+The curriculum now uses 100 topic-based learning missions plus 20 boss recaps. Each section contains five learning missions followed by one boss battle that corrupts code from those five lessons.
 
 The sections are:
 
-- Section 1: code order, `print()`, comments, strings, and syntax symbols.
+- Section 1: code order, console output, comments, strings, and syntax symbols.
 - Section 2: text variables, integers, floats, booleans, and `None`.
-- Section 3: readable names, string joining, f-strings, math expressions, and reassignment.
-- Section 4: `type()`, lists, indexes, append, and a mini inventory.
-- Section 5: dictionaries, dictionary lookup, comparisons, `if`, and `if/else`.
-- Section 6: equality, `elif`, `and`, `or`, and `not`.
-- Section 7: `range()` loops, loop variables, list loops, accumulators, and short `while` loops.
-- Section 8: defining functions, calling functions, parameters, return values, and status functions.
-- Section 9: `input()`, `int()` conversion, imports, file path values, and settings dictionaries.
-- Section 10: reading errors, `try/except`, simple checks, focused function design, and a final mini program.
+- Section 3: readable names, string joining, `str()` conversion, and f-string basics.
+- Section 4: arithmetic, division, reassignment, and update flow.
+- Section 5: `input()`, `int()`, `float()`, cast selection, and `type()`.
+- Section 6: decimal formatting, comma formatting, and aligned output columns.
+- Section 7: order of operations, `math.sqrt()`, `abs()`, `+=`, and variable tracing.
+- Section 8: list creation, indexes, append, `len()`, and mini inventory data.
+- Section 9: dictionaries, updates, list-of-dictionary records, and nested lookup.
+- Section 10: basket records, line totals, `sum()`, generator expressions, and basket output.
+- Section 11: comparisons, `if`, indentation, `if/else`, and equality.
+- Section 12: `elif`, `and`, `or`, `not`, and efficient stored decisions.
+- Section 13: `range()` loops, loop variables, list loops, accumulators, and short `while` loops.
+- Section 14: list traversal, counting matches, looped totals, nested loops, and stop values.
+- Section 15: function definition, calls, parameters, returns, and status functions.
+- Section 16: total functions, formatted functions, validation, defaults, and mini calculators.
+- Section 17: checking balances, deposits, rent, purchases, savings, and interest.
+- Section 18: table headers, money rows, and reusable ledger row formatting.
+- Section 19: imports, predictable random choices, file paths, `try/except`, and debug messages.
+- Section 20: budget-program inputs, calculations, savings/interest, report output, and capstone assembly.
 
 Boss missions are generated from the five previous learning missions so each battle is a true recap.
 
@@ -208,14 +219,11 @@ MISSION_RECOMMENDATION.md
 
 The Day 2 backlog preserves the current curriculum while capturing future refinements:
 
-- review whether `type()` should move later,
-- consider teaching comparisons before dictionaries,
-- consider placing dictionaries after basic conditionals,
-- add an explicit Python indentation mission,
-- introduce `+=` only after expanded reassignment and accumulators,
-- defer tuples until an intermediate follow-up,
-- preserve five-level boss recap structure,
-- keep loop visualizations short.
+- add intermediate topics such as tuples, sets, comprehensions, classes, and file I/O when the learner is ready,
+- preserve the five-level boss recap structure,
+- keep loop visualizations short,
+- keep project-style missions practical and beginner-readable,
+- update telemetry labels whenever concepts move or expand.
 
 ## Telemetry Capture
 
@@ -491,15 +499,7 @@ Clean install removes that local student data only when explicitly selected.
 
 Release rule: whenever an app update is published, run `.\INSTALLER\build-installer.ps1` so both `dist` and `INSTALLER\Output` are refreshed together.
 
-## Important Project Boundaries
-
-Do not modify these reference projects:
-
-```text
-C:\Users\demit\Documents\Antigrav\WPMtrainer
-C:\Users\demit\Documents\Antigrav\DevOpsAgent
-C:\Users\demit\Documents\Antigrav\NetworkMonitorTool
-```
+## Project Location
 
 This project owns the implementation in:
 

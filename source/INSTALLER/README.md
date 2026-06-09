@@ -2,7 +2,7 @@
 
 This folder builds the guided Windows setup executable for Python Coder Game.
 
-The installer follows the same broad pattern used by the reference projects:
+The installer provides:
 
 - a custom .NET Windows setup wizard,
 - embedded application payload,
@@ -11,15 +11,6 @@ The installer follows the same broad pattern used by the reference projects:
 - Start Menu and desktop shortcuts,
 - Add/Remove Programs uninstall entry,
 - a clean-install option that can remove local AppData when explicitly selected.
-
-Reference projects are read-only:
-
-```text
-C:\Users\demit\Documents\Antigrav\WPMtrainer
-C:\Users\demit\Documents\Antigrav\NetworkMonitorTool
-```
-
-Do not edit those folders when maintaining this installer.
 
 ## Build The Installer
 

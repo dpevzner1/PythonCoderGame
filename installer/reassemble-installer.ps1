@@ -1,49 +1,37 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
-$scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-function Join-Parts {
-    param(
-        [Parameter(Mandatory = $true)][string]$BasePath
-    )
-
-    $directory = Split-Path -Parent $BasePath
-    $name = Split-Path -Leaf $BasePath
-    $parts = Get-ChildItem -LiteralPath $directory -Filter "$name.part*" | Sort-Object Name
-
-    if ($parts.Count -eq 0) {
-        Write-Host "No parts found for $name; skipping."
+function Join-Parts([string]$BaseName, [string]$Directory) {
+    $parts = Get-ChildItem -LiteralPath $Directory -Filter "$BaseName.part*" | Sort-Object Name
+    if (-not $parts) {
         return
     }
 
-    if (Test-Path $BasePath) {
-        Remove-Item -LiteralPath $BasePath -Force
+    $target = Join-Path $Directory $BaseName
+    if (Test-Path $target) {
+        Remove-Item -LiteralPath $target -Force
     }
 
-    $target = [System.IO.File]::Create($BasePath)
+    $out = [IO.File]::Create($target)
     try {
         foreach ($part in $parts) {
-            Write-Host "Appending $($part.Name)..."
-            $source = [System.IO.File]::OpenRead($part.FullName)
+            $in = [IO.File]::OpenRead($part.FullName)
             try {
-                $source.CopyTo($target)
+                $in.CopyTo($out)
             }
             finally {
-                $source.Dispose()
+                $in.Dispose()
             }
         }
     }
     finally {
-        $target.Dispose()
+        $out.Dispose()
     }
 
-    $hash = Get-FileHash -LiteralPath $BasePath -Algorithm SHA256
-    Write-Host ""
-    Write-Host "Reassembled: $BasePath"
-    Write-Host "SHA256: $($hash.Hash)"
-    Write-Host ""
+    $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $target).Hash
+    Write-Host "$BaseName SHA256 $hash"
 }
 
-Join-Parts (Join-Path $scriptRoot "PythonCoderGame.Setup.exe")
-Join-Parts (Join-Path $scriptRoot "PythonCoderGamePayload.zip")
-Join-Parts (Join-Path $scriptRoot "portable-dist\PythonCoderGame.exe")
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+Join-Parts "PythonCoderGame.Setup.exe" $here
+Join-Parts "PythonCoderGamePayload.zip" $here
+Join-Parts "PythonCoderGame.exe" (Join-Path $here "portable-dist")
